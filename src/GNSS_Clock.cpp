@@ -1,0 +1,104 @@
+#include <string.h>
+#include <util/atomic.h>
+
+#include "GNSS_Clock.h"
+#include <MicroNMEA.h>
+
+GNSS_Clock gnss_clock;
+
+
+void GNSS_Clock::isr(void)
+{
+  gnss_clock.ppsHandler();
+}
+
+
+bool GNSS_Clock::begin(void* buffer, uint8_t len, uint8_t ppsPin, uint8_t edge)
+{
+  _nmea.setBuffer(buffer, len);
+  pinMode(ppsPin, INPUT);
+  attachInterrupt(digitalPinToInterrupt(ppsPin), isr, edge);
+  return true;
+}
+
+
+bool GNSS_Clock::readClock(RTCx::time_t *t) const
+{
+  bool r = false;
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+    if (_isValid) {
+      *t = _secondsSinceEpoch;
+      r = true;
+    }
+  }
+  return r;
+}
+
+bool GNSS_Clock::readClock(struct RTCx::tm *tm) const
+{
+  bool r = false;
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+    if (_isValid) {
+      RTCx::gmtime_r((const RTCx::time_t*)&_secondsSinceEpoch, tm);
+      r = true;
+    }
+  }
+  return r;
+}
+
+void GNSS_Clock::clear(void)
+{
+  _isValid = false;
+  _navSystem = '\0';
+  _numSat = 0;
+  _hdop = 255;
+  _latitude = 999000000L;
+  _longitude = 999000000L;
+  _altitude = _speed = _course = LONG_MIN;
+  _altitudeValid = false;
+  // _tm.tm_year = _tm.tm_mon = _tm.tm_mday = 0;
+  // _tm.tm_yday = -1; 
+  // _tm.tm_hour = _tm.tm_min = _tm.tm_sec = 99;
+}
+
+void GNSS_Clock::ppsHandler(void)
+{
+  _isValid = _nmea.isValid();
+  if (_isValid) {
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+      struct RTCx::tm tm;
+      tm.tm_year = _nmea.getYear() - 1900;
+      tm.tm_mon = _nmea.getMonth() - 1;
+      tm.tm_mday = _nmea.getDay();
+      tm.tm_hour = _nmea.getHour();
+      tm.tm_min = _nmea.getMinute();
+      tm.tm_sec = _nmea.getSecond();
+      tm.tm_yday = -1;
+      _secondsSinceEpoch = RTCx::mktime(tm);
+      if (_secondsSinceEpoch == -1)
+	_isValid = false;
+      else
+	// Increment to get current time. NB this doesn't take into
+	// account any leap seconds which may be added.
+	++_secondsSinceEpoch;
+      _navSystem = _nmea.getNavSystem();
+      _numSat = _nmea.getNumSatellites();
+      _hdop = _nmea.getHDOP();
+      _latitude = _nmea.getLatitude();
+      _longitude = _nmea.getLongitude();
+      long tmp;
+      _altitudeValid = _nmea.getAltitude(tmp);
+      if (_altitudeValid)
+	_altitude = tmp;
+    }
+  }
+  else {
+    clear();
+  }
+  _nmea.clear();
+
+  if (_1ppsCallback)
+    (*_1ppsCallback)(*this);
+}
+
+
