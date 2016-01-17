@@ -100,17 +100,19 @@ void loop(void)
     console.println(valid ? "true" : "false");
     console.print("Seconds since epoch: ");
     console.println(t);
-    
-    struct RTCx::tm tm;
-    gnss_clock.readClock(tm);
-    
-    char isoDateTime[25];
-    snprintf(isoDateTime, sizeof(isoDateTime),
-	     "%04d-%02d-%02d %02d:%02d:%02dZ",
-	     tm.tm_year + 1900, tm.tm_mon+1, tm.tm_mday,
-	     tm.tm_hour, tm.tm_min, tm.tm_sec);
-    console.print("Date/time: ");
-    console.println(isoDateTime);
+
+    if (valid) {
+      struct RTCx::tm tm;
+      gnss_clock.readClock(tm);
+      
+      char isoDateTime[25];
+      snprintf(isoDateTime, sizeof(isoDateTime),
+	       "%04d-%02d-%02d %02d:%02d:%02dZ",
+	       tm.tm_year + 1900, tm.tm_mon+1, tm.tm_mday,
+	       tm.tm_hour, tm.tm_min, tm.tm_sec);
+      console.print("Date/time: ");
+      console.println(isoDateTime);
+    }
   }
   
   while (!ppsTriggered && gnss.available()) {
