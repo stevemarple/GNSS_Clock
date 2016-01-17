@@ -29,6 +29,10 @@ public:
     return readClock(&t);
   }
 
+  bool readClock(RTCx::time_t &t, long& latitude, long& longitude,
+		 long& altitude, bool& altitudeValid, char& navSystem,
+		 uint8_t& numSat, uint8_t& hdop) const;
+
   bool readClock(struct RTCx::tm *tm) const;
 
   inline bool readClock(struct RTCx::tm &tm) const {

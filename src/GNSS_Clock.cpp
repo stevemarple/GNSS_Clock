@@ -34,6 +34,33 @@ bool GNSS_Clock::readClock(RTCx::time_t *t) const
   return r;
 }
 
+bool GNSS_Clock::readClock(RTCx::time_t& t,
+			   long& latitude,
+			   long& longitude,
+			   long& altitude,
+			   bool& altitudeValid,
+			   char& navSystem,
+			   uint8_t& numSat,
+			   uint8_t& hdop) const
+{
+  bool r = false;
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+    if (_isValid) {
+      t = _secondsSinceEpoch;
+      latitude = _latitude;
+      longitude = _longitude;
+      altitudeValid = _altitudeValid;
+      if (_altitudeValid)
+	altitude = _altitude;
+      navSystem = _navSystem;
+      numSat = _numSat;
+      hdop = _hdop;
+      r = true;
+    }
+  }
+  return r;
+}
+
 bool GNSS_Clock::readClock(struct RTCx::tm *tm) const
 {
   bool r = false;
@@ -86,7 +113,7 @@ void GNSS_Clock::ppsHandler(void)
       _hdop = _nmea.getHDOP();
       _latitude = _nmea.getLatitude();
       _longitude = _nmea.getLongitude();
-      long tmp;
+      long tmp = LONG_MIN;
       _altitudeValid = _nmea.getAltitude(tmp);
       if (_altitudeValid)
 	_altitude = tmp;
