@@ -41,7 +41,7 @@ public:
 
   void clear(void);
 
-  inline void set1ppsCallback(void (*callback)(const GNSS_Clock& clock)) {
+  inline void set1ppsCallback(void (*callback)(volatile const GNSS_Clock& clock)) {
     _1ppsCallback = callback;
   }
 
@@ -59,7 +59,7 @@ private:
   volatile uint8_t _numSat;
   volatile uint8_t _hdop;
   MicroNMEA _nmea;
-  void (*_1ppsCallback)(const GNSS_Clock &clock);
+  void (*_1ppsCallback)(volatile const GNSS_Clock &clock);
   
   static void isr(void);
   void ppsHandler(void);
