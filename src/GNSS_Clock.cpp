@@ -27,7 +27,8 @@ bool GNSS_Clock::readClock(RTCx::time_t *t) const
   bool r = false;
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     if (_isValid) {
-      *t = _secondsSinceEpoch;
+      if (t != NULL)
+	*t = _secondsSinceEpoch;
       r = true;
     }
   }
