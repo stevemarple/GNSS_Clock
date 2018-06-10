@@ -13,7 +13,9 @@ class GNSS_Clock {
   
 public:
 
-  inline GNSS_Clock(void) : _1ppsCallback(NULL) {
+  inline GNSS_Clock(void) :
+	  _secondsSinceEpoch(0),
+	  _1ppsCallback(NULL) {
     clear();
   }
   
