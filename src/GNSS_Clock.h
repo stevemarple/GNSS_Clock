@@ -1,7 +1,7 @@
 #ifndef GNSS_CLOCK_H
 #define GNSS_CLOCK_H
 
-#define GNSS_CLOCK_VERSION "0.1.0"
+#define GNSS_CLOCK_VERSION "0.1.1"
 
 #include "Arduino.h"
 #include <MicroNMEA.h>
