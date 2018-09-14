@@ -25,9 +25,7 @@ public:
 		return _nmea.process(c);
 	}
 
-	bool isValid(void) const volatile {
-		return _isValid;
-	}
+	bool isValid(void) const volatile;
 
 	bool readClock(RTCx::time_t *t) const;
 
