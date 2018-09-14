@@ -49,6 +49,10 @@ public:
 		_1ppsCallback = callback;
 	}
 
+	inline const char* getSentence(void) const {
+		return _nmea.getSentence();
+	}
+
 private:
 	volatile char _navSystem;
 	volatile bool _isValid;
