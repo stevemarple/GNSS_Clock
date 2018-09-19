@@ -53,6 +53,10 @@ public:
 		return _nmea.getSentence();
 	}
 
+	inline const MicroNMEA& getMicroNMEA(void) const {
+	    return _nmea;
+	}
+
 private:
 	volatile char _navSystem;
 	volatile bool _isValid;
