@@ -101,8 +101,8 @@ void GNSS_Clock::clear(void)
 
 void GNSS_Clock::ppsHandler(void)
 {
-	if (_nmea.isValid()) {
-		ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		if (_nmea.isValid()) {
 			struct RTCx::tm tm;
 			tm.tm_year = _nmea.getYear() - 1900;
 			tm.tm_mon = _nmea.getMonth() - 1;
@@ -130,12 +130,12 @@ void GNSS_Clock::ppsHandler(void)
 			if (_altitudeValid)
 				_altitude = tmp;
 		}
-	}
-	else {
-		clear();
-	}
-	_nmea.clear();
+		else {
+			clear();
+		}
+		_nmea.clear();
 
-	if (_1ppsCallback)
-		(*_1ppsCallback)(*this);
+		if (_1ppsCallback)
+			(*_1ppsCallback)(*this);
+	}
 }
