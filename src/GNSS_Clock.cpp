@@ -52,10 +52,11 @@ bool GNSS_Clock::readClock(RTCx::time_t& t,
 						   uint8_t& numSat,
 						   uint8_t& hdop) const
 {
-	bool r = false;
+	bool r;
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		t = _secondsSinceEpoch;
+		r = _isValid;
 		if (_isValid) {
-			t = _secondsSinceEpoch;
 			latitude = _latitude;
 			longitude = _longitude;
 			altitudeValid = _altitudeValid;
@@ -64,7 +65,6 @@ bool GNSS_Clock::readClock(RTCx::time_t& t,
 			navSystem = _navSystem;
 			numSat = _numSat;
 			hdop = _hdop;
-			r = true;
 		}
 	}
 	return r;
@@ -72,12 +72,10 @@ bool GNSS_Clock::readClock(RTCx::time_t& t,
 
 bool GNSS_Clock::readClock(struct RTCx::tm *tm) const
 {
-	bool r = false;
+	bool r;
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		if (_isValid) {
-			RTCx::gmtime_r((const RTCx::time_t*)&_secondsSinceEpoch, tm);
-			r = true;
-		}
+		RTCx::gmtime_r((const RTCx::time_t*)&_secondsSinceEpoch, tm);
+		r = _isValid;
 	}
 	return r;
 }
@@ -102,16 +100,17 @@ void GNSS_Clock::clear(void)
 void GNSS_Clock::ppsHandler(void)
 {
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		// Try to obtain the time of fix, even if the time/position is not valid
+		struct RTCx::tm tm;
+		tm.tm_year = _nmea.getYear() - 1900;
+		tm.tm_mon = _nmea.getMonth() - 1;
+		tm.tm_mday = _nmea.getDay();
+		tm.tm_hour = _nmea.getHour();
+		tm.tm_min = _nmea.getMinute();
+		tm.tm_sec = _nmea.getSecond();
+		tm.tm_yday = -1;
+		_secondsSinceEpoch = RTCx::mktime(tm);
 		if (_nmea.isValid()) {
-			struct RTCx::tm tm;
-			tm.tm_year = _nmea.getYear() - 1900;
-			tm.tm_mon = _nmea.getMonth() - 1;
-			tm.tm_mday = _nmea.getDay();
-			tm.tm_hour = _nmea.getHour();
-			tm.tm_min = _nmea.getMinute();
-			tm.tm_sec = _nmea.getSecond();
-			tm.tm_yday = -1;
-			_secondsSinceEpoch = RTCx::mktime(tm);
 			if (_secondsSinceEpoch == -1)
 				_isValid = false;
 			else {
