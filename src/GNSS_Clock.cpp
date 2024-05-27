@@ -24,9 +24,7 @@ bool GNSS_Clock::begin(void* buffer, uint8_t len, uint8_t ppsPin, uint8_t edge)
 
 bool GNSS_Clock::isValid(void) const volatile
 {
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		return _isValid;
-	}
+	return _isValid;
 }
 
 
