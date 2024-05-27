@@ -53,7 +53,7 @@ public:
 		return _nmea.getSentence();
 	}
 
-	inline const MicroNMEA& getMicroNMEA(void) const {
+	inline MicroNMEA& getMicroNMEA(void) {
 	    return _nmea;
 	}
 
